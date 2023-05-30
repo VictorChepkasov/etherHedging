@@ -55,6 +55,7 @@ contract Hedging {
     }
 
     function payPartyA(uint _value) payable public onlyA {
+        //проверяем одиноковую ли сумму ввели стороны
         if (hedge.bBalance != 0) {
             require(hedge.bBalance == _value * hedge.ethUSDPrice, "The parties entered different amounts of funds!");
             hedge.aBalance = _value * hedge.ethUSDPrice;
@@ -94,6 +95,13 @@ contract Hedging {
         require(block.timestamp >= hedge.dateOfReactivate, "The time hasn't yet come!");
         contractReactivate = true;
 
+        //возможно, примерно так, но это без оракула
+        uint newABalance = (bank.balance / 2) / hedge.ethUSDPrice; 
+        uint newBBalance = bank.balance - newABalance;
+        _payParty(hedge.partyA, newABalance); //A 
+        hedge.partyAReceivedEth = true;
+        _payParty(hedge.partyB, newBBalance); //B
+        hedge.partyBReceivedEth = true;
 
         hedge.dateOfClose = block.timestamp;
     }

@@ -40,7 +40,7 @@ contract Hedging {
     function setHedgeInfo(
         address _partyB,
         uint _shelfLife
-    ) public {
+    ) public contractNonActive {
         require(msg.sender != _partyB, "Party A and party B must be different persons!");
         hedge.partyB = payable(_partyB);
         hedge.aBalance = 0;
@@ -54,7 +54,8 @@ contract Hedging {
         hedge.partyBReceivedEth = false;
     }
 
-    function payPartyA(uint _value) payable public onlyA {
+    function payPartyA(uint _value) payable public onlyA contractNonActive {
+        require(!contractActivate || !contractReactivate, "Contract active or reactive!");
         //проверяем одиноковую ли сумму ввели стороны
         if (hedge.bBalance != 0) {
             require(hedge.bBalance == _value * hedge.ethUSDPrice, "The parties entered different amounts of funds!");
@@ -70,7 +71,9 @@ contract Hedging {
         }
     }
 
-    function payPartyB(uint _value) payable public onlyB {
+    function payPartyB(uint _value) payable public onlyB contractNonActive {
+        
+
         if (hedge.aBalance != 0) {
             require(hedge.aBalance == _value * hedge.ethUSDPrice, "The parties entered different amounts of funds!");
             hedge.bBalance = _value * hedge.ethUSDPrice;
@@ -85,7 +88,7 @@ contract Hedging {
         }
     }
 
-    function setContractActivate() public {
+    function setContractActivate() public contractNonActive {
         hedge.dateOfCreate = block.timestamp;
         hedge.dateOfReactivate = hedge.dateOfCreate + hedge.shelfLife;
         contractActivate = true;
@@ -138,8 +141,8 @@ contract Hedging {
         require(contractActivate, "Contract must activate!");
         _;
     }
-    modifier contractReactive() {
-        require(contractReactivate, "Contract must reactivate!");
+    modifier contractNonActive() {
+        require(!contractActivate && !contractReactivate, "Contract active!");
         _;
     }
 }

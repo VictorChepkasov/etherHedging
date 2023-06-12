@@ -72,8 +72,6 @@ contract Hedging {
     }
 
     function payPartyB(uint _value) payable public onlyB contractNonActive {
-        
-
         if (hedge.aBalance != 0) {
             require(hedge.aBalance == _value * hedge.ethUSDPrice, "The parties entered different amounts of funds!");
             hedge.bBalance = _value * hedge.ethUSDPrice;

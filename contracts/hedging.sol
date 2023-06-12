@@ -2,7 +2,7 @@
 pragma solidity >=0.8.2 <0.9.0;
 
 contract Hedging {
-    // uint256 bank = 0;
+    uint256 bank = 0;
     //если контракт активирован, то нужно дождаться n дней до реактивации,
     // и в это время нельзя положить\забрать оттуда эфиры
     bool contractActivate = false;
@@ -52,36 +52,37 @@ contract Hedging {
         hedge.partyBReceivedEth = false;
     }
 
-    function payPartyA(uint _value) payable public onlyA contractNonActive {
+    function payPartyA() payable public onlyA contractNonActive {
         require(!contractActivate || !contractReactivate, "Contract active or reactive!");
         //проверяем одиноковую ли сумму ввели стороны
         if (hedge.bBalance != 0) {
-            require(hedge.bBalance == _value * hedge.ethUSDPrice, "The parties entered different amounts of funds!");
-            hedge.aBalance = _value * hedge.ethUSDPrice;
+            require(hedge.bBalance == msg.value * hedge.ethUSDPrice, "The parties entered different amounts of funds!");
+            hedge.aBalance = msg.value * hedge.ethUSDPrice;
         } else {
-            hedge.aBalance = _value * hedge.ethUSDPrice;
+            hedge.aBalance = msg.value * hedge.ethUSDPrice;
         }
 
         hedge.partyAInputEth = true;
 
-        _payParty(hedge.partyA, _value);
+        _withdraw(payable(address(this)), msg.value);
 
         if (hedge.partyBInputEth) {
             setContractActivate();
         }
     }
 
-    function payPartyB(uint _value) payable public onlyB contractNonActive {
+    function payPartyB() payable public onlyB contractNonActive {
+        require(!contractActivate || !contractReactivate, "Contract active or reactive!");
         if (hedge.aBalance != 0) {
-            require(hedge.aBalance == _value * hedge.ethUSDPrice, "The parties entered different amounts of funds!");
-            hedge.bBalance = _value * hedge.ethUSDPrice;
+            require(hedge.aBalance == msg.value * hedge.ethUSDPrice, "The parties entered different amounts of funds!");
+            hedge.bBalance = msg.value * hedge.ethUSDPrice;
         } else {
-            hedge.bBalance = _value * hedge.ethUSDPrice;
+            hedge.bBalance = msg.value * hedge.ethUSDPrice;
         }
 
         hedge.partyBInputEth = true;
 
-        _payParty(hedge.partyB, _value);
+        _withdraw(payable(address(this)), msg.value);
 
         if (hedge.partyAInputEth) {
             setContractActivate();
@@ -101,10 +102,10 @@ contract Hedging {
         //возможно, примерно так, но это без оракула
         uint newABalance = (address(this).balance / 2) / hedge.ethUSDPrice; 
         uint newBBalance = address(this).balance - newABalance;
-        _payParty(hedge.partyA, newABalance); //A 
         hedge.partyAReceivedEth = true;
-        _payParty(hedge.partyB, newBBalance); //B
+        _withdraw(hedge.partyA, newABalance); //A 
         hedge.partyBReceivedEth = true;
+        _withdraw(hedge.partyB, newBBalance); //B
 
         hedge.dateOfClose = block.timestamp;
     }
@@ -117,14 +118,17 @@ contract Hedging {
         return hedge;
     }
 
-    function _payParty(address _sender, uint256 _value) private {
-        require(_sender != address(0), "Wrong address!");
-        (bool sent, ) = address(this).call{value: _value}("");
+    function _withdraw(address _to, uint256 _value) private {
+        require(msg.sender != address(0), "Wrong address!");
+        (bool sent, ) = _to.call{value: _value}("");
         require(sent, "Failed to send Ether");
 
     }
 
-    receive() external payable {}
+    receive() external payable {
+        bank += msg.value;
+    }
+
     fallback() external payable {}
 
     //модификаторы

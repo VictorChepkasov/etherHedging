@@ -3,17 +3,18 @@ from scripts import deploy_hedging
 
 # deployed_contract = Hedging[-1]
 contract = deploy_hedging.deploy_contract()
-value = 10000
+value = 0.01
 
 def main():
     print('deployed success!')
     setHedgeInfo('0xa5f78F093C1Fa451eAb7D3102AdF1eC6E0b85F27', 1)
     print('set hedge info!')
+    getContractBalance()
     payPartyA(value)
     print('party a sent ether!')
+    getContractBalance()
     payPartyB(value)
     print('party b sent ether!')
-    getContractBalance()
     getHedgeInfo()
     setContractReactivate()
     getHedgeInfo()

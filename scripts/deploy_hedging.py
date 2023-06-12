@@ -10,9 +10,8 @@ def main():
     print('deployed success!')
 
 def deploy_contract():
-    hedging_deploy_contract = Hedging.deploy({'from': partyA, 
-                                              'priority_fee': '1 wei'})
-    # hedging_deploy_contract = Hedging.deploy({'from': partyA, 'gasPrice': 100000000000000000})
+    hedging_deploy_contract = Hedging.deploy({'from': partyA, 'priority_fee': '1 gwei'})
+    # hedging_deploy_contract = Hedging.deploy({'from': partyA, 'gas_limit': 100000000000000000000000})
 
     print(f'contract deployed at {hedging_deploy_contract}')
 

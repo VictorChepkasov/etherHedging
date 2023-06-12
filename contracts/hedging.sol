@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.10 <0.9.0;
+pragma solidity >=0.8.2 <0.9.0;
 
 contract Hedging {
-    address payable bank = payable(address(this));
+    // uint256 bank = 0;
     //если контракт активирован, то нужно дождаться n дней до реактивации,
     // и в это время нельзя положить\забрать оттуда эфиры
     bool contractActivate = false;
@@ -35,8 +35,6 @@ contract Hedging {
         hedge.partyA = payable(msg.sender);
     }
 
-    receive() external payable {}
-
     function setHedgeInfo(
         address _partyB,
         uint _shelfLife
@@ -64,7 +62,9 @@ contract Hedging {
             hedge.aBalance = _value * hedge.ethUSDPrice;
         }
 
-        _payParty(msg.sender, _value);
+        hedge.partyAInputEth = true;
+
+        _payParty(hedge.partyA, _value);
 
         if (hedge.partyBInputEth) {
             setContractActivate();
@@ -79,7 +79,9 @@ contract Hedging {
             hedge.bBalance = _value * hedge.ethUSDPrice;
         }
 
-        _payParty(msg.sender, _value);
+        hedge.partyBInputEth = true;
+
+        _payParty(hedge.partyB, _value);
 
         if (hedge.partyAInputEth) {
             setContractActivate();
@@ -97,8 +99,8 @@ contract Hedging {
         contractReactivate = true;
 
         //возможно, примерно так, но это без оракула
-        uint newABalance = (bank.balance / 2) / hedge.ethUSDPrice; 
-        uint newBBalance = bank.balance - newABalance;
+        uint newABalance = (address(this).balance / 2) / hedge.ethUSDPrice; 
+        uint newBBalance = address(this).balance - newABalance;
         _payParty(hedge.partyA, newABalance); //A 
         hedge.partyAReceivedEth = true;
         _payParty(hedge.partyB, newBBalance); //B
@@ -108,19 +110,22 @@ contract Hedging {
     }
 
     function getContractBalance() public view returns(uint) {
-        return bank.balance;
+        return address(this).balance;
     }
 
     function getHedgeInfo() public view returns(HedgeInfo memory) {
         return hedge;
     }
 
-    function _payParty(address _sender, uint _value) private {
+    function _payParty(address _sender, uint256 _value) private {
         require(_sender != address(0), "Wrong address!");
-        hedge.partyBInputEth = true;
-        bool sent = bank.send(_value);
-        require(sent, "Failure! Ether not sent!");
+        (bool sent, ) = address(this).call{value: _value}("");
+        require(sent, "Failed to send Ether");
+
     }
+
+    receive() external payable {}
+    fallback() external payable {}
 
     //модификаторы
     modifier onlyA() {

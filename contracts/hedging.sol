@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.2 <0.9.0;
+pragma solidity ^0.8.20;
 
 contract Hedging {
     uint256 bank = 0;
@@ -39,12 +39,12 @@ contract Hedging {
         address _partyB,
         uint _shelfLife
     ) public contractNonActive {
-        require(msg.sender != _partyB, "Party A and party B must be different persons!");
+        require(hedge.partyA != _partyB, "Party A and party B must be different persons!");
         hedge.partyB = payable(_partyB);
         hedge.aBalance = 0;
         hedge.bBalance = 0;
         hedge.ethUSDPrice = 190365; //потом подключим оракул, 2 знака после запятой (1903,65)
-        hedge.shelfLife = _shelfLife * 86400;
+        hedge.shelfLife = 86400 * _shelfLife;
         hedge.dateOfReactivate = 0;
         hedge.partyAInputEth = false;
         hedge.partyBInputEth = false;
@@ -57,13 +57,10 @@ contract Hedging {
         //проверяем одиноковую ли сумму ввели стороны
         if (hedge.bBalance != 0) {
             require(hedge.bBalance == msg.value * hedge.ethUSDPrice, "The parties entered different amounts of funds!");
-            hedge.aBalance = msg.value * hedge.ethUSDPrice;
-        } else {
-            hedge.aBalance = msg.value * hedge.ethUSDPrice;
         }
-
+        
+        hedge.aBalance = msg.value * hedge.ethUSDPrice;
         hedge.partyAInputEth = true;
-
         _withdraw(payable(address(this)), msg.value);
 
         if (hedge.partyBInputEth) {
@@ -73,16 +70,15 @@ contract Hedging {
 
     function payPartyB() payable public onlyB contractNonActive {
         require(!contractActivate || !contractReactivate, "Contract active or reactive!");
+        //проверяем одиноковую ли сумму ввели стороны
         if (hedge.aBalance != 0) {
             require(hedge.aBalance == msg.value * hedge.ethUSDPrice, "The parties entered different amounts of funds!");
-            hedge.bBalance = msg.value * hedge.ethUSDPrice;
-        } else {
-            hedge.bBalance = msg.value * hedge.ethUSDPrice;
         }
 
+        hedge.bBalance = msg.value * hedge.ethUSDPrice;
         hedge.partyBInputEth = true;
-
         _withdraw(payable(address(this)), msg.value);
+
 
         if (hedge.partyAInputEth) {
             setContractActivate();

@@ -5,21 +5,21 @@ a = accounts.load('victor')
 b = accounts.load('victor2')
 value = 1
 
-deploy_hedging.deploy_contract(a)
+# deploy_hedging.deploy_contract(a)
 contract = Hedging[-1]
 # print('deployed success!')
 
 def main():
     setHedgeInfo(b, 1)
-    getHedgeInfo()
+    hedge = getHedgeInfo()
     getContractBalance()
     payPartyA()
     getContractBalance()
-    # payPartyB()
-    # print('party b sent ether!')
-    getHedgeInfo()
+    payPartyB()
+    hedge = getHedgeInfo()
     # setContractReactivate()
     # getHedgeInfo()
+    print(hedge)
 
 
 def setHedgeInfo(address, shelfLife):
@@ -34,6 +34,7 @@ def payPartyA():
 def payPartyB():
     b.transfer(Hedging[-1], "1000 wei")
     contract.payPartyB({"from": b})
+    print('party b sent ether!')
 
 def setContractReactivate():
     contract.setContractReactivate({'from': a})

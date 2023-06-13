@@ -28,14 +28,12 @@ def setHedgeInfo(address, shelfLife):
 
 def payPartyA():
     print('Party A sending Ether')
-    # a.transfer(contract, deposit)
     contract.payPartyA({"from": a, "value": deposit})
     print('party a sent ether!')
     getHedgeInfo()
 
 def payPartyB():
     print('Party B sending Ether')
-    # b.transfer(contract, deposit)
     contract.payPartyB({"from": b, "value": deposit})
     print('party b sent ether!')
     getHedgeInfo()

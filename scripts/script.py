@@ -4,22 +4,22 @@ from scripts import deploy_hedging
 a = accounts.load('victor')
 b = accounts.load('victor2')
 value = 1
+deposit = 1000000000000
 
-# deploy_hedging.deploy_contract(a)
-contract = Hedging[-1]
+contract = deploy_hedging.deploy_contract(a)
 # print('deployed success!')
 
 def main():
     setHedgeInfo(b, 1)
-    hedge = getHedgeInfo()
+    getHedgeInfo()
     getContractBalance()
     payPartyA()
     getContractBalance()
     payPartyB()
-    hedge = getHedgeInfo()
+    getContractBalance() 
+    
     # setContractReactivate()
     # getHedgeInfo()
-    print(hedge)
 
 
 def setHedgeInfo(address, shelfLife):
@@ -27,14 +27,18 @@ def setHedgeInfo(address, shelfLife):
     print('set hedge info!')
 
 def payPartyA():
-    a.transfer(Hedging[-1], "1000 wei")
-    contract.payPartyA({"from": a})
+    print('Party A sending Ether')
+    # a.transfer(contract, deposit)
+    contract.payPartyA({"from": a, "value": '1000 wei'})
     print('party a sent ether!')
+    getHedgeInfo()
 
 def payPartyB():
-    b.transfer(Hedging[-1], "1000 wei")
-    contract.payPartyB({"from": b})
+    print('Party B sending Ether')
+    # b.transfer(contract, deposit)
+    contract.payPartyB({"from": b, "value": '1000 wei'})
     print('party b sent ether!')
+    getHedgeInfo()
 
 def setContractReactivate():
     contract.setContractReactivate({'from': a})
@@ -46,7 +50,7 @@ def getContractBalance():
     return contractBalance
 
 def getHedgeInfo():
-    hedge = list(contract.getHedgeInfo())
+    hedge = contract.getHedgeInfo()
     print(f'''hedge contract info: 
           A: {hedge[0]}
           B: {hedge[1]}
@@ -59,7 +63,7 @@ def getHedgeInfo():
           Date of close: {hedge[8]}
           A input Eth: {hedge[9]}
           B input Eth: {hedge[10]}
-          A received Eth: {hedge[11]}
+          A received Eth: {hedge[11]} 
           B received Eth: {hedge[12]}''')
 
-    return hedge
+    return hedge 

@@ -4,7 +4,7 @@ from scripts import deploy_hedging
 a = accounts.load('victor')
 b = accounts.load('victor2')
 value = 1
-deposit = 1000000000000
+deposit = "10000 wei"
 
 contract = deploy_hedging.deploy_contract(a)
 # print('deployed success!')
@@ -29,14 +29,14 @@ def setHedgeInfo(address, shelfLife):
 def payPartyA():
     print('Party A sending Ether')
     # a.transfer(contract, deposit)
-    contract.payPartyA({"from": a, "value": '1000 wei'})
+    contract.payPartyA({"from": a, "value": deposit})
     print('party a sent ether!')
     getHedgeInfo()
 
 def payPartyB():
     print('Party B sending Ether')
     # b.transfer(contract, deposit)
-    contract.payPartyB({"from": b, "value": '1000 wei'})
+    contract.payPartyB({"from": b, "value": deposit})
     print('party b sent ether!')
     getHedgeInfo()
 

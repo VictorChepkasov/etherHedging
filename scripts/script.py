@@ -1,36 +1,42 @@
-from brownie import Hedging
+from brownie import Hedging, accounts
 from scripts import deploy_hedging
 
-# deployed_contract = Hedging[-1]
-contract = deploy_hedging.deploy_contract()
-value = 0.01
+a = accounts.load('victor')
+b = accounts.load('victor2')
+value = 1
+
+deploy_hedging.deploy_contract(a)
+contract = Hedging[-1]
+# print('deployed success!')
 
 def main():
-    print('deployed success!')
-    setHedgeInfo('0xa5f78F093C1Fa451eAb7D3102AdF1eC6E0b85F27', 1)
-    print('set hedge info!')
-    getContractBalance()
-    payPartyA(value)
-    print('party a sent ether!')
-    getContractBalance()
-    payPartyB(value)
-    print('party b sent ether!')
+    setHedgeInfo(b, 1)
     getHedgeInfo()
-    setContractReactivate()
+    getContractBalance()
+    payPartyA()
+    getContractBalance()
+    # payPartyB()
+    # print('party b sent ether!')
     getHedgeInfo()
+    # setContractReactivate()
+    # getHedgeInfo()
 
 
 def setHedgeInfo(address, shelfLife):
-    contract.setHedgeInfo(address, shelfLife)
+    contract.setHedgeInfo(address, shelfLife, {'from': a})
+    print('set hedge info!')
 
-def payPartyA(value):
-    contract.payPartyA(value)
+def payPartyA():
+    a.transfer(Hedging[-1], "1000 wei")
+    contract.payPartyA({"from": a})
+    print('party a sent ether!')
 
-def payPartyB(value):
-    contract.payPartyB(value)
+def payPartyB():
+    b.transfer(Hedging[-1], "1000 wei")
+    contract.payPartyB({"from": b})
 
 def setContractReactivate():
-    contract.setContractReactivate()
+    contract.setContractReactivate({'from': a})
 
 def getContractBalance():
     contractBalance = contract.getContractBalance()
@@ -39,7 +45,20 @@ def getContractBalance():
     return contractBalance
 
 def getHedgeInfo():
-    hedge = contract.getHedgeInfo()
-    print(f'hedge contract info: {hedge}')
+    hedge = list(contract.getHedgeInfo())
+    print(f'''hedge contract info: 
+          A: {hedge[0]}
+          B: {hedge[1]}
+          A ballance: {hedge[2]}
+          B balance: {hedge[3]}
+          ETH/USD price: {hedge[4]}
+          Shelf Life: {hedge[5]}
+          Date of create: {hedge[6]}
+          Date of reactivate: {hedge[7]}
+          Date of close: {hedge[8]}
+          A input Eth: {hedge[9]}
+          B input Eth: {hedge[10]}
+          A received Eth: {hedge[11]}
+          B received Eth: {hedge[12]}''')
 
     return hedge

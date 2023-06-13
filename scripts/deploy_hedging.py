@@ -3,14 +3,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-partyA = accounts.load('victor')
-
-def main():
-    deploy_contract()
-    print('deployed success!')
-
-def deploy_contract():
-    hedging_deploy_contract = Hedging.deploy({'from': partyA, 'priority_fee': '1 gwei'})
+def deploy_contract(_from):
+    hedging_deploy_contract = Hedging.deploy({'from': _from, 'priority_fee': '1 gwei'})
     # hedging_deploy_contract = Hedging.deploy({'from': partyA, 'gas_limit': 100000000000000000000000})
 
     print(f'contract deployed at {hedging_deploy_contract}')

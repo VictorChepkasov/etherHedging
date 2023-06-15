@@ -1,12 +1,12 @@
 from brownie import Hedging, accounts
 from scripts import deploy_hedging
 
-a = accounts.load('victor')
-b = accounts.load('victor2')
-value = 1
-deposit = "10000 wei"
+# a = accounts[0]
+# b = accounts[1]
+# value = 1
+# deposit = "10000 wei"
 
-contract = deploy_hedging.deploy_contract(a)
+# contract = deploy_hedging.deploy_contract(a)
 # print('deployed success!')
 
 def main():
@@ -22,8 +22,8 @@ def main():
     # getHedgeInfo()
 
 
-def setHedgeInfo(address, shelfLife):
-    contract.setHedgeInfo(address, shelfLife, {'from': a})
+def setHedgeInfo(_address, _shelfLife, _from):
+    Hedging[-1].setHedgeInfo(_address, _shelfLife, {'from': _from, 'priority_fee': '1 wei'})
     print('set hedge info!')
 
 def payPartyA():
@@ -48,7 +48,7 @@ def getContractBalance():
     return contractBalance
 
 def getHedgeInfo():
-    hedge = contract.getHedgeInfo()
+    hedge = Hedging[-1].getHedgeInfo()
     print(f'''hedge contract info: 
           A: {hedge[0]}
           B: {hedge[1]}

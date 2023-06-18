@@ -26,7 +26,7 @@ def setHedgeInfo(_address, _shelfLife, _from):
     Hedging[-1].setHedgeInfo(_address, _shelfLife, {'from': _from, 'priority_fee': '1 wei'})
     print('set hedge info!')
 
-def setContractReactivate():
+def setContractReactivate(contract):
     contract.setContractReactivate({'from': a})
 
 def payPartyA(contract, _a, _deposit):

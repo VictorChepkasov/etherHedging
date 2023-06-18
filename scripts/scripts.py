@@ -1,5 +1,4 @@
-from brownie import Hedging, accounts
-from scripts import deploy_hedging
+from brownie import Hedging
 
 def setHedgeInfo(_address, _shelfLife, _from):
     Hedging[-1].setHedgeInfo(_address, _shelfLife, {'from': _from, 'priority_fee': '1 wei'})

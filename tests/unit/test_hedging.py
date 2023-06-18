@@ -2,7 +2,7 @@
 import pytest
 from brownie import accounts
 from scripts.deploy_hedging import deployContract
-from scripts.script import setHedgeInfo, getHedgeInfo, payPartyA, payPartyB, getContractBalance, setContractReactivate
+from scripts.scripts import setHedgeInfo, getHedgeInfo, payPartyA, payPartyB, getContractBalance, setContractReactivate
 
 
 @pytest.fixture(autouse=True)

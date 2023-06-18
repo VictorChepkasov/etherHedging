@@ -4,7 +4,7 @@ from brownie import Hedging, accounts
 from scripts.deploy_hedging import deployContract
 from scripts.script import setHedgeInfo, getHedgeInfo, payPartyA, payPartyB, getContractBalance 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def hedge():
     a = accounts[0]
     b = accounts[1]
@@ -12,14 +12,14 @@ def hedge():
 
     return a, b, contract
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def hedgeInfo(hedge):
     setHedgeInfo(hedge[1], 1, hedge[0])
     return hedgeInfo
 
-def test_HedgeInfo(hedge):
+@pytest.mark.parametrize('shelfLife', [0, 7, 365])
+def test_HedgeInfo(hedge, shelfLife):
     a, b, _ = hedge
-    shelfLife = 1
     validHedgeInfo = (a.address, b.address, 0, 0, 190365,
                         86400 * shelfLife, 0, 0, 0, 
                         False, False, False, False)
@@ -29,27 +29,27 @@ def test_HedgeInfo(hedge):
 
     assert validHedgeInfo == testHedgeInfo
 
-def test_payA(hedge, hedgeInfo):
+@pytest.mark.parametrize('deposit', [0, 100, 1000000000000])
+def test_payA(hedge, hedgeInfo, deposit):
     a, _, contract = hedge
-    deposit = 100
     print(f"Balance A: {getHedgeInfo()[2]}")
 
     payPartyA(contract, a, f"{deposit} wei")
 
     assert getHedgeInfo()[2] == deposit * 190365
 
-def test_payB(hedge, hedgeInfo):
+@pytest.mark.parametrize('deposit', [0, 100, 1000000000000])
+def test_payB(hedge, hedgeInfo, deposit):
     _, b, contract = hedge
-    deposit = 100
     print(f"Balance B: {getHedgeInfo()[3]}")
 
     payPartyB(contract, b, f"{deposit} wei")
 
     assert getHedgeInfo()[3] == deposit * 190365
 
-def test_BalanceChanges(hedge, hedgeInfo):
+@pytest.mark.parametrize('deposit', [0, 100, 1000000000000])
+def test_BalanceChanges(hedge, hedgeInfo, deposit):
     a, b, contract = hedge
-    deposit = 100
     print(f"Balance: {getContractBalance(contract)}")
 
     payPartyA(contract, a, f"{deposit} wei")

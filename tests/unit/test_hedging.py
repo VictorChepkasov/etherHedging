@@ -48,6 +48,7 @@ def test_payB(hedge, hedgeInfo, deposit=100):
     payPartyB(contract, b, f"{deposit} wei")
     assert getHedgeInfo()[3] == deposit * 190365
 
+#нет прверки на случай, если баалансы сторон будут разные
 @pytest.mark.parametrize('deposit', [0, 100, 1000000000000])
 def test_BalanceChanges(hedge, hedgeInfo, deposit):
     a, b, contract = hedge

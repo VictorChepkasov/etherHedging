@@ -68,7 +68,7 @@ contract Hedging {
                 "The parties entered different amounts of funds!"
             );
         }
-        
+
         hedge.aBalance = msg.value * hedge.ethUSDPrice;
         hedge.partyAInputEth = true;
         _withdraw(payable(address(this)), msg.value);
@@ -94,7 +94,6 @@ contract Hedging {
         hedge.bBalance = msg.value * hedge.ethUSDPrice;
         hedge.partyBInputEth = true;
         _withdraw(payable(address(this)), msg.value);
-
 
         if (hedge.partyAInputEth) {
             setContractActivate();
@@ -137,7 +136,6 @@ contract Hedging {
         require(msg.sender != address(0), "Wrong address!");
         (bool sent, ) = _to.call{value: _value}("");
         require(sent, "Failed to send Ether");
-
     }
 
     receive() external payable {

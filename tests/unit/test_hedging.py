@@ -2,7 +2,13 @@
 import pytest
 from brownie import accounts
 from scripts.deploy_hedging import deployContract
-from scripts.scripts import setHedgeInfo, getHedgeInfo, payPartyA, payPartyB, getContractBalance, setContractReactivate
+from scripts.scripts import (
+    setHedgeInfo,
+    getHedgeInfo,
+    payPartyA,
+    payPartyB,
+    getContractBalance,
+    setContractReactivate)
 
 
 @pytest.fixture(autouse=True)
@@ -17,7 +23,10 @@ def hedgeInfo(hedge):
     setHedgeInfo(hedge[1], 1, hedge[0])
     return hedgeInfo
 
-@pytest.mark.parametrize('shelfLife', [0, 7, 365, pytest.param(0.1, marks=pytest.mark.xfail)])
+@pytest.mark.parametrize(
+    'shelfLife',
+    [0, 7, 365, pytest.param(0.1, marks=pytest.mark.xfail)]
+)
 def test_HedgeInfo(hedge, shelfLife):
     a, b, _ = hedge
     validHedgeInfo = (a.address, b.address, 0, 0, 190365,
@@ -47,11 +56,14 @@ def test_BalanceChanges(hedge, hedgeInfo, deposit):
     payPartyB(contract, b, f"{deposit} wei")
     assert getContractBalance(contract) == 2 * deposit
 
-@pytest.mark.parametrize('shelfLife', [0, pytest.param(1, marks=pytest.mark.xfail)])
+@pytest.mark.parametrize(
+    'shelfLife',
+    [0, pytest.param(1, marks=pytest.mark.xfail)]
+)
 def test_contractReactivate(hedge, shelfLife):
     a, b, contract = hedge
     setHedgeInfo(b, shelfLife, a)
-    #activate contract with transaction
+    #активируем с помощью транзакций (как и задумано)
     payPartyA(contract, a, f"100 wei")
     payPartyB(contract, b, f"100 wei")
 

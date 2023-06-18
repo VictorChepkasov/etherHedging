@@ -1,6 +1,6 @@
 
 import pytest
-from brownie import Hedging, accounts
+from brownie import accounts
 from scripts.deploy_hedging import deployContract
 from scripts.script import setHedgeInfo, getHedgeInfo, payPartyA, payPartyB, getContractBalance 
 

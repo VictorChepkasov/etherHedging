@@ -56,3 +56,4 @@ def test_BalanceChanges(hedge, hedgeInfo, deposit):
     payPartyB(contract, b, f"{deposit} wei")
 
     assert getContractBalance(contract) == 2 * deposit
+

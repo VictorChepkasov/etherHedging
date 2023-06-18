@@ -1,33 +1,12 @@
 from brownie import Hedging, accounts
 from scripts import deploy_hedging
 
-# a = accounts[0]
-# b = accounts[1]
-# value = 1
-# deposit = "10000 wei"
-
-# contract = deploy_hedging.deploy_contract(a)
-# print('deployed success!')
-
-def main():
-    setHedgeInfo(b, 1)
-    getHedgeInfo()
-    getContractBalance()
-    payPartyA()
-    getContractBalance()
-    payPartyB()
-    getContractBalance() 
-    
-    # setContractReactivate()
-    # getHedgeInfo()
-
-
 def setHedgeInfo(_address, _shelfLife, _from):
     Hedging[-1].setHedgeInfo(_address, _shelfLife, {'from': _from, 'priority_fee': '1 wei'})
     print('set hedge info!')
 
-def setContractReactivate(contract):
-    contract.setContractReactivate({'from': a})
+def setContractReactivate(contract, _from):
+    contract.setContractReactivate({'from': _from, 'priority_fee': '1 wei'})
 
 def payPartyA(contract, _a, _deposit):
     print('Party A sending Ether')

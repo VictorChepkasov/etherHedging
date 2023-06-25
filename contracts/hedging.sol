@@ -11,23 +11,16 @@ contract Hedging {
     struct HedgeInfo {
         address payable partyA;
         address payable partyB;
-
-        //балансы сторон в долларах
-        uint aBalance;
-        uint bBalance;
         uint ethUSDPrice; //цена пары eth/usd, будет браться из оракула
         uint shelfLife; //n дней, после которых активируется контракт
         uint dateOfCreate; //от этой даты отсчитываем n дней
         uint dateOfReactivate; //дата, после которой можно реактивировать контракт
         uint dateOfClose; //дата закрытия сделки
-        
-        //ввели ли строны эфир
-        bool partyAInputEth;
-        bool partyBInputEth;
-        //получили ли деньги стороны после реактивации контракта 
-        bool partyAReceivedEth;
-        bool partyBReceivedEth;
     }
+
+    mapping(address => bool) inputsEth; //ввели ли строны эфир
+    mapping(address => bool) receivedEth; //получили ли деньги стороны после реактивации контракта 
+    mapping(address => uint) balances; //балансы сторон в долларах
 
     HedgeInfo private hedge;
 
@@ -44,58 +37,37 @@ contract Hedging {
             "Party A and party B must be different persons!"
         );
         hedge.partyB = payable(_partyB);
-        hedge.aBalance = 0;
-        hedge.bBalance = 0;
         //потом подключим оракул, 2 знака после запятой (1903,65)
         hedge.ethUSDPrice = 190365; 
         hedge.shelfLife = 86400 * _shelfLife;
         hedge.dateOfReactivate = 0;
-        hedge.partyAInputEth = false;
-        hedge.partyBInputEth = false;
-        hedge.partyAReceivedEth = false;
-        hedge.partyBReceivedEth = false;
+        inputsEth[hedge.partyA] = false;
+        inputsEth[hedge.partyB] = false;
+        receivedEth[hedge.partyA] = false;
+        receivedEth[hedge.partyB] = false;
+        balances[hedge.partyA] = 0;
+        balances[hedge.partyB] = 0;
     }
 
-    function payPartyA() payable public onlyA contractNonActive {
+    function pay() public payable onlyParties contractNonActive {
         require(
-            !contractActivate || !contractReactivate,
-            "Contract active or reactive!"
+            !contractReactivate,
+            "Contract reactive!"
         );
+
         //проверяем одиноковую ли сумму ввели стороны
-        if (hedge.bBalance != 0) {
+        if (balances[hedge.partyA] != 0 && balances[hedge.partyB] != 0) {
             require(
-                hedge.bBalance == msg.value * hedge.ethUSDPrice,
+                balances[msg.sender] == msg.value * hedge.ethUSDPrice,
                 "The parties entered different amounts of funds!"
             );
         }
 
-        hedge.aBalance = msg.value * hedge.ethUSDPrice;
-        hedge.partyAInputEth = true;
+        balances[msg.sender] = msg.value * hedge.ethUSDPrice;
+        inputsEth[msg.sender] = true;
         _withdraw(payable(address(this)), msg.value);
 
-        if (hedge.partyBInputEth) {
-            setContractActivate();
-        }
-    }
-
-    function payPartyB() payable public onlyB contractNonActive {
-        require(
-            !contractActivate || !contractReactivate,
-            "Contract active or reactive!"
-        );
-        //проверяем одиноковую ли сумму ввели стороны
-        if (hedge.aBalance != 0) {
-            require(
-            hedge.aBalance == msg.value * hedge.ethUSDPrice,
-            "The parties entered different amounts of funds!"
-        );
-        }
-
-        hedge.bBalance = msg.value * hedge.ethUSDPrice;
-        hedge.partyBInputEth = true;
-        _withdraw(payable(address(this)), msg.value);
-
-        if (hedge.partyAInputEth) {
+        if (inputsEth[hedge.partyA] && inputsEth[hedge.partyB]) {
             setContractActivate();
         }
     }
@@ -116,9 +88,9 @@ contract Hedging {
         //возможно, примерно так, но это без оракула
         uint newABalance = (address(this).balance / 2) / hedge.ethUSDPrice; 
         uint newBBalance = address(this).balance - newABalance;
-        hedge.partyAReceivedEth = true;
+        receivedEth[hedge.partyA] = true;
         _withdraw(hedge.partyA, newABalance); //A 
-        hedge.partyBReceivedEth = true;
+        receivedEth[hedge.partyB] = true;
         _withdraw(hedge.partyB, newBBalance); //B
 
         hedge.dateOfClose = block.timestamp;
@@ -145,6 +117,11 @@ contract Hedging {
     fallback() external payable {}
 
     //модификаторы
+    modifier onlyParties() {
+        require(msg.sender == hedge.partyA || msg.sender == hedge.partyB, "Only parties!");
+        _;
+    }
+
     modifier onlyA() {
         require(msg.sender == hedge.partyA, "Only party A!");
         _;

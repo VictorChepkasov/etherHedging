@@ -13,24 +13,14 @@ def setContractReactivate(contract, _from):
         'priority_fee': '1 wei'
     })
 
-def payPartyA(contract, _a, _deposit):
-    print('Party A sending Ether')
-    contract.payPartyA({
+def pay(_a, _deposit):
+    print(f'Party {_a} sent ether!')
+    Hedging[-1].pay({
         "from": _a,
         "value": _deposit,
         'priority_fee': '1 wei'
     })
-    print('party A sent ether!')
-    # getHedgeInfo()
-
-def payPartyB(contract, _b, _deposit):
-    print('Party B sending Ether')
-    contract.payPartyB({
-        "from": _b,
-        "value": _deposit,
-        'priority_fee': '1 wei'
-    })
-    print('party B sent ether!')
+    print(f'Party {_a} sent ether!')
     # getHedgeInfo()
 
 def getContractBalance(contract):

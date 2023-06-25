@@ -35,7 +35,8 @@ def hedgeInfo(hedge):
 #     testHedgeInfo = getHedgeInfo()
 #     assert validHedgeInfo == testHedgeInfo
 
-def test_pay(hedge, hedgeInfo, deposit=100):
+@pytest.mark.parametrize('deposit', [0, 100, 1000000000000])
+def test_pay(hedge, hedgeInfo, deposit):
     a, _, _ = hedge
     print(f"Balance : {getHedgeInfo()[-2]}")
     pay(a, f"{deposit} wei")

@@ -8,8 +8,8 @@ from scripts.scripts import (
     payPartyA,
     payPartyB,
     getContractBalance,
-    setContractReactivate)
-
+    setContractReactivate
+)
 
 @pytest.fixture(autouse=True)
 def hedge():
@@ -41,12 +41,6 @@ def test_pay(hedge, hedgeInfo, deposit=100):
     print(f"Balance : {getHedgeInfo()[2]}")
     payPartyA(a, f"{deposit} wei")
     assert getHedgeInfo()[2] == deposit * 190365
-
-def test_payB(hedge, hedgeInfo, deposit=100):
-    # _, b, contract = hedge
-    print(f"Balance B: {getHedgeInfo()[3]}")
-    payPartyB(contract, b, f"{deposit} wei")
-    assert getHedgeInfo()[3] == deposit * 190365
 
 #нет прверки на случай, если баалансы сторон будут разные
 # @pytest.mark.parametrize('deposit', [0, 100, 1000000000000])

@@ -2,13 +2,12 @@
 pragma solidity ^0.8.20;
 
 contract Hedging {
-    uint256 bank = 0;
+    uint bank = 0;
     //если контракт активирован, то нужно дождаться n дней до реактивации,
     // и в это время нельзя положить\забрать оттуда эфиры
-    bool contractActivate = false;
-    bool contractReactivate = false; //если реактивирован, то сторонам начисляется эфир
-
-    struct HedgeInfo {
+    struct Hedge {
+        bool contractActivate;
+        bool contractReactivate; //если реактивирован, то сторонам начисляется эфир
         address payable partyA;
         address payable partyB;
         uint ethUSDPrice; //цена пары eth/usd, будет браться из оракула
@@ -17,12 +16,11 @@ contract Hedging {
         uint dateOfReactivate; //дата, после которой можно реактивировать контракт
         uint dateOfClose; //дата закрытия сделки
     }
-
     mapping(address => bool) inputsEth; //ввели ли строны эфир
     mapping(address => bool) receivedEth; //получили ли деньги стороны после реактивации контракта 
     mapping(address => uint) balances; //балансы сторон в долларах
 
-    HedgeInfo private hedge;
+    Hedge private hedge;
 
     constructor() {
         hedge.partyA = payable(msg.sender);
@@ -51,7 +49,7 @@ contract Hedging {
 
     function pay() public payable onlyParties contractNonActive {
         require(
-            !contractReactivate,
+            !hedge.contractReactivate,
             "Contract reactive!"
         );
 
@@ -75,19 +73,19 @@ contract Hedging {
     function setContractActivate() public contractNonActive {
         hedge.dateOfCreate = block.timestamp;
         hedge.dateOfReactivate = hedge.dateOfCreate + hedge.shelfLife;
-        contractActivate = true;
+        hedge.contractActivate = true;
     }
 
-    function setContractReactivate() public contractActive onlyParty {
+    function setContractReactivate() public contractActive onlyParties {
         require(
             block.timestamp >= hedge.dateOfReactivate,
             "The time hasn't yet come!"
         );
-        contractReactivate = true;
+        hedge.contractReactivate = true;
 
         //возможно, примерно так, но это без оракула
         uint newABalance = (address(this).balance / 2) / hedge.ethUSDPrice; 
-        uint newBBalance = address(this).balance - newABalance;
+        uint newBBalance = address(this).balance - hedge.newABalance;
         receivedEth[hedge.partyA] = true;
         _withdraw(hedge.partyA, newABalance); //A 
         receivedEth[hedge.partyB] = true;
@@ -100,8 +98,18 @@ contract Hedging {
         return address(this).balance;
     }
 
-    function getHedgeInfo() public view returns(HedgeInfo memory) {
-        return hedge;
+    function getHedgeInfo() public view returns(
+        Hedge memory, uint, uint, uint, uint, uint, uint
+    ) {
+        return (
+            hedge,
+            inputsEth[hedge.partyA],
+            inputsEth[hedge.partyB],
+            receivedEth[hedge.partyA],
+            receivedEth[hedge.partyB],
+            balances[hedge.partyA],
+            balances[hedge.partyB]
+        );
     }
 
     function _withdraw(address _to, uint256 _value) private {
@@ -130,20 +138,14 @@ contract Hedging {
         require(msg.sender == hedge.partyB, "Only party B!");
         _;
     }
-    modifier onlyParty() {
-        require(
-            msg.sender == hedge.partyA || msg.sender == hedge.partyB,
-            "Only party!"
-        );
-        _;
-    }
+
     modifier contractActive() {
-        require(contractActivate, "Contract must activate!");
+        require(hedge.contractActivate, "Contract must activate!");
         _;
     }
     modifier contractNonActive() {
         require(
-            !contractActivate && !contractReactivate,
+            !hedge.contractActivate && !hedge.contractReactivate,
             "Contract active!"
         );
         _;

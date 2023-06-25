@@ -5,8 +5,7 @@ from scripts.deploy_hedging import deployContract
 from scripts.scripts import (
     setHedgeInfo,
     getHedgeInfo,
-    payPartyA,
-    payPartyB,
+    pay,
     getContractBalance,
     setContractReactivate
 )
@@ -38,9 +37,9 @@ def hedgeInfo(hedge):
 
 def test_pay(hedge, hedgeInfo, deposit=100):
     a, _, _ = hedge
-    print(f"Balance : {getHedgeInfo()[2]}")
-    payPartyA(a, f"{deposit} wei")
-    assert getHedgeInfo()[2] == deposit * 190365
+    print(f"Balance : {getHedgeInfo()[-2]}")
+    pay(a, f"{deposit} wei")
+    assert getHedgeInfo()[-2] == deposit * 190365
 
 #нет прверки на случай, если баалансы сторон будут разные
 # @pytest.mark.parametrize('deposit', [0, 100, 1000000000000])

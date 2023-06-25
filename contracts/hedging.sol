@@ -85,7 +85,7 @@ contract Hedging {
 
         //возможно, примерно так, но это без оракула
         uint newABalance = (address(this).balance / 2) / hedge.ethUSDPrice; 
-        uint newBBalance = address(this).balance - hedge.newABalance;
+        uint newBBalance = address(this).balance - newABalance;
         receivedEth[hedge.partyA] = true;
         _withdraw(hedge.partyA, newABalance); //A 
         receivedEth[hedge.partyB] = true;
@@ -99,7 +99,7 @@ contract Hedging {
     }
 
     function getHedgeInfo() public view returns(
-        Hedge memory, uint, uint, uint, uint, uint, uint
+        Hedge memory, bool, bool, bool, bool, uint, uint
     ) {
         return (
             hedge,

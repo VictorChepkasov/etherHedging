@@ -1,14 +1,22 @@
-from brownie import Hedging
+from brownie import Hedging, accounts
+from scripts.deploy_hedging import deployContract
 
-def setHedgeInfo(_address, _shelfLife, _from):
-    Hedging[-1].setHedgeInfo(_address, _shelfLife, {
+def main():
+    a = accounts[0]
+    b = accounts[1]
+    deployContract(a)
+    setHedgeInfo(b, 1, a)
+    print(getHedgeInfo())
+
+def setHedgeInfo(_partyB, _shelfLife, _from):
+    Hedging[-1].setHedgeInfo(_partyB, _shelfLife, {
         'from': _from,
-        'priority_fee': '1 wei'
+        'priority_fee': '10 wei'
     })
     print('set hedge info!')
 
-def setContractReactivate(contract, _from):
-    contract.setContractReactivate({
+def setContractReactivate(_from):
+    Hedging[-1].setContractReactivate({
         'from': _from,
         'priority_fee': '1 wei'
     })
@@ -23,27 +31,15 @@ def pay(_a, _deposit):
     print(f'Party {_a} sent ether!')
     # getHedgeInfo()
 
-def getContractBalance(contract):
-    contractBalance = contract.getContractBalance()
+def getContractBalance():
+    contractBalance = Hedging[-1].getContractBalance()
     print(f'contract balance: {contractBalance}')
 
     return contractBalance
 
 def getHedgeInfo():
-    hedge = Hedging[-1].getHedgeInfo()
-    # print(f'''hedge contract info: 
-    #       A: {hedge[0]}
-    #       B: {hedge[1]}
-    #       A balance: {hedge[2]}
-    #       B balance: {hedge[3]}
-    #       ETH/USD price: {hedge[4]}
-    #       Shelf Life: {hedge[5]}
-    #       Date of create: {hedge[6]}
-    #       Date of reactivate: {hedge[7]}
-    #       Date of close: {hedge[8]}
-    #       A input Eth: {hedge[9]}
-    #       B input Eth: {hedge[10]}
-    #       A received Eth: {hedge[11]} 
-    #       B received Eth: {hedge[12]}''')
-
-    return hedge 
+    tmp = Hedging[-1].getHedgeInfo()
+    hedge = list(tmp[0])
+    for i in tmp[1:]:
+        hedge.append(i)
+    return list(hedge) 

@@ -82,7 +82,7 @@ contract Hedging {
             "The time hasn't yet come!"
         );
         hedge.contractReactivate = true;
-
+        
         //возможно, примерно так, но это без оракула
         uint newABalance = (address(this).balance / 2) / hedge.ethUSDPrice; 
         uint newBBalance = address(this).balance - newABalance;

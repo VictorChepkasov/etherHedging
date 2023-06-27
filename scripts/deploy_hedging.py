@@ -8,7 +8,5 @@ def deployContract(_from):
         'from': _from,
         'priority_fee': '10 wei'
     })
-
     print(f'contract deployed at {hedgingDeployContract}')
-
     return hedgingDeployContract

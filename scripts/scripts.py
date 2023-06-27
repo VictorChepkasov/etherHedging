@@ -1,13 +1,6 @@
 from brownie import Hedging, accounts
 from scripts.deploy_hedging import deployContract
 
-def main():
-    a = accounts[0]
-    b = accounts[1]
-    deployContract(a)
-    setHedgeInfo(b, 1, a)
-    print(getHedgeInfo())
-
 def setHedgeInfo(_partyB, _shelfLife, _from):
     Hedging[-1].setHedgeInfo(_partyB, _shelfLife, {
         'from': _from,
@@ -31,10 +24,14 @@ def pay(_a, _deposit):
     print(f'Party {_a} sent ether!')
     # getHedgeInfo()
 
+def getLatestETHUSDData():
+    answer = Hedging[-1].getLatestETHUSDData()
+    print(f'ETH/USD latest price: {answer}')
+    return answer
+
 def getContractBalance():
     contractBalance = Hedging[-1].getContractBalance()
     print(f'contract balance: {contractBalance}')
-
     return contractBalance
 
 def getHedgeInfo():
@@ -42,4 +39,4 @@ def getHedgeInfo():
     hedge = list(tmp[0])
     for i in tmp[1:]:
         hedge.append(i)
-    return list(hedge) 
+    return list(hedge)

@@ -18,6 +18,10 @@ networks:
     keyhash: "0x6c3699283bda56ad74f6b855546325b68d482e983852a7a82979cc4807b641f4"
     update_interval: 60
     verify: false
+    cmd_settings:
+      unlock:
+        - 0xB9a459a00855B0b82337E692D078d7292609701C
+        - 0xa5f78F093C1Fa451eAb7D3102AdF1eC6E0b85F27
   ganache:
     fee: 100000000000000000
     jobId: 29fa9aa13bf1468788b7cc4a500a45b8

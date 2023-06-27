@@ -12,7 +12,7 @@ contract Hedging {
         bool contractReactivate; //если реактивирован, то сторонам начисляется эфир
         address payable partyA;
         address payable partyB;
-        uint ethUSDPrice; //цена пары eth/usd, будет браться из оракула
+        uint ethUSDData; //цена пары eth/usd, будет браться из оракула
         uint shelfLife; //n дней, после которых активируется контракт
         uint dateOfCreate; //от этой даты отсчитываем n дней
         uint dateOfReactivate; //дата, после которой можно реактивировать контракт
@@ -23,18 +23,19 @@ contract Hedging {
     mapping(address => uint) balances; //балансы сторон в долларах
 
     Hedge private hedge;
-    AggregatorV3Interface internal ethUsdFeed;
+    AggregatorV3Interface internal dataFeed;
 
     /**
      * Aggregator: ETH/USD
-     * Address: 0x5f4ec3df9cbd43714fe2740f5e3616155c5b8419
+     * Network: Sepolia
+     * Address: 0x694AA1769357215DE4FAC081bf1f309aDC325306
      */
 
     constructor() {
-        hedge.partyA = payable(msg.sender);
-        ethUsdFeed = AggregatorV3Interface(
-            0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419
+        dataFeed = AggregatorV3Interface(
+            0x694AA1769357215DE4FAC081bf1f309aDC325306
         );
+        hedge.partyA = payable(msg.sender);
     }
 
     function setHedgeInfo(
@@ -47,7 +48,7 @@ contract Hedging {
         );
         hedge.partyB = payable(_partyB);
         //потом подключим оракул, 2 знака после запятой (1903,65)
-        hedge.ethUSDPrice = 190365; 
+        hedge.ethUSDData = getLatestETHUSDData(); 
         hedge.shelfLife = 86400 * _shelfLife;
         hedge.dateOfReactivate = 0;
         inputsEth[hedge.partyA] = false;
@@ -63,16 +64,17 @@ contract Hedging {
             !hedge.contractReactivate,
             "Contract reactive!"
         );
+        hedge.ethUSDData = getLatestETHUSDData();
 
         //проверяем одиноковую ли сумму ввели стороны
         if (balances[hedge.partyA] != 0 && balances[hedge.partyB] != 0) {
             require(
-                balances[msg.sender] == msg.value * hedge.ethUSDPrice,
+                balances[msg.sender] == msg.value * hedge.ethUSDData,
                 "The parties entered different amounts of funds!"
             );
         }
 
-        balances[msg.sender] = msg.value * hedge.ethUSDPrice;
+        balances[msg.sender] = msg.value * hedge.ethUSDData;
         inputsEth[msg.sender] = true;
         _withdraw(payable(address(this)), msg.value);
 
@@ -92,10 +94,9 @@ contract Hedging {
             block.timestamp >= hedge.dateOfReactivate,
             "The time hasn't yet come!"
         );
-        hedge.contractReactivate = true;
+        hedge.ethUSDData = getLatestETHUSDData();
         
-        //возможно, примерно так, но это без оракула
-        uint newABalance = (address(this).balance / 2) / hedge.ethUSDPrice; 
+        uint newABalance = (address(this).balance / 2) / hedge.ethUSDData; 
         uint newBBalance = address(this).balance - newABalance;
         receivedEth[hedge.partyA] = true;
         _withdraw(hedge.partyA, newABalance); //A 
@@ -105,15 +106,15 @@ contract Hedging {
         hedge.dateOfClose = block.timestamp;
     }
 
-    function getLatestETHUSDData() public view returns(int) {
+    function getLatestETHUSDData() public view returns (uint) {
         (
-            /*uint roundID*/,
+            /* uint80 roundID */,
             int answer,
             /*uint startedAt*/,
-            /*uint timeStamp*/, 
-            /*uint answeredInRound*/
-        ) = ethUsdFeed.latestRoundData();
-        return answer;
+            /*uint timeStamp*/,
+            /*uint80 answeredInRound*/
+        ) = dataFeed.latestRoundData();
+        return uint(answer);
     }
 
     function getContractBalance() public view returns(uint) {

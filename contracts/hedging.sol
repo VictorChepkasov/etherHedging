@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+
 contract Hedging {
     uint bank = 0;
     //если контракт активирован, то нужно дождаться n дней до реактивации,
@@ -21,9 +23,18 @@ contract Hedging {
     mapping(address => uint) balances; //балансы сторон в долларах
 
     Hedge private hedge;
+    AggregatorV3Interface internal ethUsdFeed;
+
+    /**
+     * Aggregator: ETH/USD
+     * Address: 0x5f4ec3df9cbd43714fe2740f5e3616155c5b8419
+     */
 
     constructor() {
         hedge.partyA = payable(msg.sender);
+        ethUsdFeed = AggregatorV3Interface(
+            0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419
+        );
     }
 
     function setHedgeInfo(
@@ -92,6 +103,17 @@ contract Hedging {
         _withdraw(hedge.partyB, newBBalance); //B
 
         hedge.dateOfClose = block.timestamp;
+    }
+
+    function getLatestETHUSDData() public view returns(int) {
+        (
+            /*uint roundID*/,
+            int answer,
+            /*uint startedAt*/,
+            /*uint timeStamp*/, 
+            /*uint answeredInRound*/
+        ) = ethUsdFeed.latestRoundData();
+        return answer;
     }
 
     function getContractBalance() public view returns(uint) {

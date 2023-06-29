@@ -43,6 +43,11 @@ networks:
     vrf_coordinator: "0x2Ca8E0C643bDe4C2E08ab1fA0da3401AdAD7734D"
   sepolia:
     verify: True
+    cmd_settings:
+      unlock:
+        - 0xB9a459a00855B0b82337E692D078d7292609701C
+        - 0xa5f78F093C1Fa451eAb7D3102AdF1eC6E0b85F27
+        - 0x0Ea0771D3F0Bf6d079915722ca81dFEca8d2490d
   mumbai:
     eth_usd_price_feed: "0x0715A7794a1dc8e42615F059dD6e406A6594651A"
     fee: 1000000000000000000
@@ -56,3 +61,5 @@ wallets:
   from_key: ${PRIVATE_KEY}
 settings:
   gas_limit: "100000000000000000"
+
+  # 3Fde6GH7

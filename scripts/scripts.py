@@ -20,9 +20,8 @@ def pay(_a, _deposit):
         "from": _a,
         "value": _deposit,
         'priority_fee': '1 wei'
-    })
+    }).wait(1)
     print(f'Party {_a} sent ether!')
-    # getHedgeInfo()
 
 def getLatestETHUSDData():
     answer = Hedging[-1].getLatestETHUSDData()

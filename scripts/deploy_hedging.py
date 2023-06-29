@@ -1,7 +1,11 @@
-from brownie import Hedging
+from brownie import Hedging, accounts
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# def main():
+#     a = accounts[0]
+#     deployContract(a)
 
 def deployContract(_from):
     hedgingDeployContract = Hedging.deploy({

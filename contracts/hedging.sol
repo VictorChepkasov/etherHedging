@@ -106,7 +106,7 @@ contract Hedging {
         hedge.dateOfClose = block.timestamp;
     }
 
-    function getLatestETHUSDData() public view# When you run send_raw_transaction, you get the same result as the hash of the transaction: returns (uint) {
+    function getLatestETHUSDData() public view returns (uint) {
         (
             /* uint80 roundID */,
             int answer,

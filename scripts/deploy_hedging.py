@@ -1,34 +1,17 @@
 from brownie import Hedging, accounts
 from dotenv import load_dotenv
-from scripts.abi import *
-
-from web3 import Web3, EthereumTesterProvider
-w3 = Web3(EthereumTesterProvider())
-
 
 load_dotenv()
 
-def main():
-    a = accounts[0]
-    deployContract(a)
+# def main():
+#     a = accounts.add(private_key="de3ba3f52e698e6f6783741917a058a80b57938ef78322775c14f0798455fac4")
+#     # b = accounts.add(private_key="5248a6634c0f42f814a2055c72731a0b2736b71186a8b9414b354d374358961a")
+#     deployContract(a)
 
 def deployContract(_from):
-    hedge = w3.eth.contract(address=Hedging[-1].address, abi=EIP20_ABI)
-    nonce = w3.eth.get_transaction_count(str(_from))
-
-    tx = hedge.functions.deploy({
+    deployed = Hedging.deploy({
         'from': _from,
         'priority_fee': '10 wei'
-    }).build_transaction({
-        'chainId': 1,
-        'gas': 70000,
-        'maxFeePerGas': w3.to_wei('2', 'gwei'),
-        'maxPriorityFeePerGas': w3.to_wei('1', 'gwei'),
-        'nonce': nonce,
     })
-    private_key = b"\xb2\\}\xb3\x1f\xee\xd9\x12''\xbf\t9\xdcv\x9a\x96VK-\xe4\xc4rm\x03[6\xec\xf1\xe5\xb3d"
-    signed_tx = w3.eth.account.sign_transaction(tx, private_key=private_key)
-    print(signed_tx.hash)
-    w3.eth.send_raw_transaction(signed_tx.rawTransaction)
-    # print(f'contract deployed at {hedgingDeployContract}')
-    # return tx
+    print(f'Contract deployed at: {deployed}')
+    return deployed

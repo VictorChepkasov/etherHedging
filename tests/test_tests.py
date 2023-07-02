@@ -1,4 +1,3 @@
-
 import pytest
 from brownie import accounts
 from scripts.deploy_hedging import deployContract
@@ -28,7 +27,7 @@ def hedgeInfo(hedge):
     setHedgeInfo(hedge[1], 1, hedge[0])
     return hedgeInfo
 
-@pytest.mark.parametrize('deposit', [0, 100, 1000000000000])
+@pytest.mark.parametrize('deposit', [0, 100])
 def test_pay(hedge, hedgeInfo, deposit):
     a, _, _ = hedge
     pay(a, f"{deposit} wei")

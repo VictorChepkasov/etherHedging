@@ -1,5 +1,4 @@
-from brownie import Hedging, accounts, chain
-from scripts.deploy_hedging import deployContract
+from brownie import Hedging
 
 def setHedgeInfo(_partyB, _shelfLife, _from):
     Hedging[-1].setHedgeInfo(_partyB, _shelfLife, {
@@ -16,12 +15,11 @@ def setContractReactivate(_from):
 
 def pay(_a, _deposit):
     print(f'Party {_a} sent ether!')
-    tx = Hedging[-1].pay({
+    Hedging[-1].pay({
         "from": _a,
         "value": _deposit,
         'priority_fee': '1 wei'
-    })
-    tx.wait(1)
+    }).wait(1)
     print(f'Party {_a} sent ether!')
 
 def getLatestETHUSDData():

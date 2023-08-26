@@ -62,7 +62,7 @@ wallets:
   from_key: ${PRIVATE_KEY}
 settings:
   gas_limit: "100000000000000000"
-
-  # 3Fde6GH7
   # st4F5tF5ht
-  # 0x37c2ff2de9a068651fd3990e527cd2f2cb82579a70d2fecda591c6e71af23a20
+  # 3Fde6GH7
+
+  # 0x694AA1769357215DE4FAC081bf1f309aDC325306

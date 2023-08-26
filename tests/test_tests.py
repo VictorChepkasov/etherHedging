@@ -1,25 +1,32 @@
 import pytest
-from brownie import accounts
+from brownie import accounts, network
 from scripts.deploy_hedging import deployContract
 from scripts.scripts import (
-    setHedgeInfo,
-    getHedgeInfo,
-    setContractReactivate,
-    pay,
     getLatestETHUSDData,
-    getContractBalance
+    getContractBalance,
+    getHedgeInfo,
+    setHedgeInfo,
+    setContractReactivate,
+    pay
 )
 
-@pytest.fixture()
+@pytest.fixture(scope='session')
 def importAccounts():
-    a = accounts.add(private_key="de3ba3f52e698e6f6783741917a058a80b57938ef78322775c14f0798455fac4")
-    b = accounts.add(private_key="5248a6634c0f42f814a2055c72731a0b2736b71186a8b9414b354d374358961a")
+    match network.show_active():
+        case 'sepolia': 
+            a, b = accounts.load('Party_A'), accounts.load('Party_B')
+        case 'development':
+            a, b = accounts[0], accounts[1]
     return a, b
 
 @pytest.fixture(autouse=True)
 def hedge(importAccounts):
     a, b = importAccounts
-    contract = deployContract(a)
+    if network.show_active() == 'sepolia':
+        _dataFeedAddress = "0x694AA1769357215DE4FAC081bf1f309aDC325306"
+    else:
+        _dataFeedAddress = "0xAD40F085BA2F345Cd8D5BD5A7053aF8E70084fcD"
+    contract = deployContract(a, _dataFeedAddress)
     return a, b, contract
 
 @pytest.fixture(autouse=True)
@@ -59,3 +66,6 @@ def test_contractReactivate(hedge, shelfLife=0):
     pay(b, f"100 wei")
     setContractReactivate(a)
     assert getHedgeInfo()[7] > 0
+
+def test_getLatestETHUSDData():
+    pass

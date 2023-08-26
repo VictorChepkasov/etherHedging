@@ -31,17 +31,70 @@ contract Hedging {
      * Address: 0x694AA1769357215DE4FAC081bf1f309aDC325306
      */
 
-    constructor() {
-        dataFeed = AggregatorV3Interface(
-            0x694AA1769357215DE4FAC081bf1f309aDC325306
+    modifier onlyParties() {
+        require(
+            msg.sender == hedge.partyA || msg.sender == hedge.partyB,
+            "Only parties!"
         );
+        _;
+    }
+
+    modifier onlyA() {
+        require(msg.sender == hedge.partyA, "Only party A!");
+        _;
+    }
+    modifier onlyB() {
+        require(msg.sender == hedge.partyB, "Only party B!");
+        _;
+    }
+
+    modifier contractActive() {
+        require(hedge.contractActivate, "Contract must activate!");
+        _;
+    }
+    modifier contractNonActive() {
+        require(
+            !hedge.contractActivate && !hedge.contractReactivate,
+            "Contract active!"
+        );
+        _;
+    }
+
+    receive() external payable {
+        bank += msg.value;
+    }
+
+    fallback() external payable {}
+
+    constructor(address dataFeedAddress) {
+        dataFeed = AggregatorV3Interface(dataFeedAddress);
         hedge.partyA = payable(msg.sender);
+    }
+
+    function getContractBalance() external view returns(uint) {
+        return address(this).balance;
+    }
+
+    function getHedgeInfo() external view returns(
+        Hedge memory, bool, bool, bool, bool, uint, uint
+    ) {
+        return (
+            hedge,
+            inputsEth[hedge.partyA],
+            inputsEth[hedge.partyB],
+            receivedEth[hedge.partyA],
+            receivedEth[hedge.partyB],
+            balances[hedge.partyA],
+            balances[hedge.partyB]
+        );
     }
 
     function setHedgeInfo(
         address _partyB,
         uint _shelfLife
-    ) public contractNonActive {
+    ) 
+        public contractNonActive 
+    {
         require(
             hedge.partyA != _partyB,
             "Party A and party B must be different persons!"
@@ -79,14 +132,8 @@ contract Hedging {
         _withdraw(payable(address(this)), msg.value);
 
         if (inputsEth[hedge.partyA] && inputsEth[hedge.partyB]) {
-            setContractActivate();
+            _setContractActivate();
         }
-    }
-
-    function setContractActivate() public contractNonActive {
-        hedge.dateOfCreate = block.timestamp;
-        hedge.dateOfReactivate = hedge.dateOfCreate + hedge.shelfLife;
-        hedge.contractActivate = true;
     }
 
     function setContractReactivate() public contractActive onlyParties {
@@ -117,60 +164,15 @@ contract Hedging {
         return uint(answer);
     }
 
-    function getContractBalance() public view returns(uint) {
-        return address(this).balance;
-    }
-
-    function getHedgeInfo() public view returns(
-        Hedge memory, bool, bool, bool, bool, uint, uint
-    ) {
-        return (
-            hedge,
-            inputsEth[hedge.partyA],
-            inputsEth[hedge.partyB],
-            receivedEth[hedge.partyA],
-            receivedEth[hedge.partyB],
-            balances[hedge.partyA],
-            balances[hedge.partyB]
-        );
+    function _setContractActivate() private contractNonActive {
+        hedge.dateOfCreate = block.timestamp;
+        hedge.dateOfReactivate = hedge.dateOfCreate + hedge.shelfLife;
+        hedge.contractActivate = true;
     }
 
     function _withdraw(address _to, uint256 _value) private {
         require(msg.sender != address(0), "Wrong address!");
         (bool sent, ) = _to.call{value: _value}("");
         require(sent, "Failed to send Ether");
-    }
-
-    receive() external payable {
-        bank += msg.value;
-    }
-
-    fallback() external payable {}
-
-    //модификаторы
-    modifier onlyParties() {
-        require(msg.sender == hedge.partyA || msg.sender == hedge.partyB, "Only parties!");
-        _;
-    }
-
-    modifier onlyA() {
-        require(msg.sender == hedge.partyA, "Only party A!");
-        _;
-    }
-    modifier onlyB() {
-        require(msg.sender == hedge.partyB, "Only party B!");
-        _;
-    }
-
-    modifier contractActive() {
-        require(hedge.contractActivate, "Contract must activate!");
-        _;
-    }
-    modifier contractNonActive() {
-        require(
-            !hedge.contractActivate && !hedge.contractReactivate,
-            "Contract active!"
-        );
-        _;
     }
 }

@@ -23,7 +23,7 @@ contract Hedging {
     mapping(address => uint) balances; //балансы сторон в долларах
 
     Hedge private hedge;
-    AggregatorV3Interface internal dataFeed;
+    AggregatorV3Interface public dataFeed;
 
     /**
      * Aggregator: ETH/USD

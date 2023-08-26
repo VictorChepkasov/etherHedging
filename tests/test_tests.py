@@ -1,6 +1,7 @@
 import pytest
 from brownie import accounts, network
-from scripts.deploy_hedging import deployContract
+from scripts.deployHedging import deployContract
+from scripts.deployAggregatorV3Testnet import deployAggregatorV3Testnet
 from scripts.scripts import (
     getLatestETHUSDData,
     getContractBalance,
@@ -25,7 +26,7 @@ def hedge(importAccounts):
     if network.show_active() == 'sepolia':
         _dataFeedAddress = "0x694AA1769357215DE4FAC081bf1f309aDC325306"
     else:
-        _dataFeedAddress = "0xAD40F085BA2F345Cd8D5BD5A7053aF8E70084fcD"
+        _dataFeedAddress = deployAggregatorV3Testnet(a)
     contract = deployContract(a, _dataFeedAddress)
     return a, b, contract
 
@@ -67,5 +68,18 @@ def test_contractReactivate(hedge, shelfLife=0):
     setContractReactivate(a)
     assert getHedgeInfo()[7] > 0
 
+
+# Тестирвоание оракула проводится в тестовой сети, поэтому тест идёт последним,
+# 0x694AA1769357215DE4FAC081bf1f309aDC325306 - адресс оракула в сети sepolia
+# Требования:
+#   - Параметр -s для возможности ввода пароля, без него тест провалится
+#   - Наличие ETH в сети Sepolia у аккаунта (acc)
 def test_getLatestETHUSDData():
-    pass
+    if network.show_active() != 'sepolia':
+        network.disconnect()
+        network.connect('sepolia')
+        print(f"Connected to: {network.show_active()}")
+    aсс = accounts.load('Party_B')
+    deployContract(aсс, '0x694AA1769357215DE4FAC081bf1f309aDC325306')
+    data = getLatestETHUSDData()
+    assert data > 0

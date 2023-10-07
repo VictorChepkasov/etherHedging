@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.19;
 
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
@@ -25,11 +25,11 @@ contract Hedging {
     Hedge private hedge;
     AggregatorV3Interface public dataFeed;
 
-    /**
-     * Aggregator: ETH/USD
-     * Network: Sepolia
-     * Address: 0x694AA1769357215DE4FAC081bf1f309aDC325306
-     */
+    /*
+    * Aggregator: ETH/USD
+    * Network: Sepolia
+    * Address: 0x694AA1769357215DE4FAC081bf1f309aDC325306
+    */
 
     modifier onlyParties() {
         require(
@@ -127,9 +127,9 @@ contract Hedging {
             );
         }
 
-        balances[msg.sender] = msg.value * hedge.ethUSDData;
-        inputsEth[msg.sender] = true;
         _withdraw(payable(address(this)), msg.value);
+        inputsEth[msg.sender] = true;
+        balances[msg.sender] = msg.value * hedge.ethUSDData;
 
         if (inputsEth[hedge.partyA] && inputsEth[hedge.partyB]) {
             _setContractActivate();
@@ -146,11 +146,11 @@ contract Hedging {
         uint newABalance = (address(this).balance / 2) / hedge.ethUSDData; 
         uint newBBalance = address(this).balance - newABalance;
         receivedEth[hedge.partyA] = true;
-        _withdraw(hedge.partyA, newABalance); //A 
         receivedEth[hedge.partyB] = true;
-        _withdraw(hedge.partyB, newBBalance); //B
-
         hedge.dateOfClose = block.timestamp;
+
+        _withdraw(hedge.partyA, newABalance); //A 
+        _withdraw(hedge.partyB, newBBalance); //B
     }
 
     function getLatestETHUSDData() public view returns (uint) {

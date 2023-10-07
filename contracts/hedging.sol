@@ -2,8 +2,9 @@
 pragma solidity ^0.8.19;
 
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+import "@openzeppelin/contracts/security/PullPayment.sol";
 
-contract Hedging {
+contract Hedging is PullPayment {
     uint bank = 0;
     //если контракт активирован, то нужно дождаться n дней до реактивации,
     // и в это время нельзя положить\забрать оттуда эфиры
@@ -100,7 +101,6 @@ contract Hedging {
             "Party A and party B must be different persons!"
         );
         hedge.partyB = payable(_partyB);
-        //потом подключим оракул, 2 знака после запятой (1903,65)
         hedge.ethUSDData = getLatestETHUSDData(); 
         hedge.shelfLife = 86400 * _shelfLife;
         hedge.dateOfReactivate = 0;
@@ -127,7 +127,10 @@ contract Hedging {
             );
         }
 
-        _withdraw(payable(address(this)), msg.value);
+        _asyncTransfer(payable(address(this)), msg.value);
+        require(payments(address(this)) > 0, "No payments to withdraw!");
+        withdrawPayments(payable(address(this)));
+
         inputsEth[msg.sender] = true;
         balances[msg.sender] = msg.value * hedge.ethUSDData;
 
@@ -149,8 +152,8 @@ contract Hedging {
         receivedEth[hedge.partyB] = true;
         hedge.dateOfClose = block.timestamp;
 
-        _withdraw(hedge.partyA, newABalance); //A 
-        _withdraw(hedge.partyB, newBBalance); //B
+        _asyncTransfer(hedge.partyA, newABalance); //A 
+        _asyncTransfer(hedge.partyB, newBBalance); //B
     }
 
     function getLatestETHUSDData() public view returns (uint) {
@@ -170,9 +173,10 @@ contract Hedging {
         hedge.contractActivate = true;
     }
 
-    function _withdraw(address _to, uint256 _value) private {
+    function _withdraw() private {
         require(msg.sender != address(0), "Wrong address!");
-        (bool sent, ) = _to.call{value: _value}("");
-        require(sent, "Failed to send Ether");
+        uint amount = payments(msg.sender);
+        require(amount > 0, "No payments to withdraw!");
+        withdrawPayments(payable(msg.sender));
     }
 }

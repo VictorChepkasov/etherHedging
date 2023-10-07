@@ -35,13 +35,13 @@ def hedgeInfo(hedge):
     setHedgeInfo(hedge[1], 1, hedge[0])
     return hedgeInfo
 
-@pytest.mark.parametrize('deposit', [0, 100])
+@pytest.mark.parametrize('deposit', [pytest.param(0, marks=pytest.mark.xfail), 100])
 def test_pay(hedge, hedgeInfo, deposit):
     a, _, _ = hedge
     pay(a, f"{deposit} wei")
     assert getHedgeInfo()[-2] == deposit * getLatestETHUSDData()
 
-@pytest.mark.parametrize('depositA, depositB', [(0, 0), (100, 100), pytest.param((120, 220), 240, marks=pytest.mark.xfail)])
+@pytest.mark.parametrize('depositA, depositB', [pytest.param((0, 0), "No payments to withdraw!", marks=pytest.mark.xfail), (100, 100), pytest.param((120, 220), 240, marks=pytest.mark.xfail)])
 def test_BalanceChanges(hedge, hedgeInfo, depositA, depositB):
     a, b, _ = hedge
     pay(a, f"{depositA} wei")
